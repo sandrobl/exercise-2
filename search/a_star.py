@@ -183,7 +183,8 @@ def astar_search(
         # Pop the next SearchNode instance (pop_node) from the heap (i.e. the next node with the lowest estimated cost)
         # pop_node is the node that will be expanded in this round!
         # HINT: Use the function heappop() of the heapq module: https://pythontic.com/algorithms/heapq/heappop
-        (f, h, _tie, pop_node) = (None, float("inf"), None, None) # update this line to implement step 1 
+        # (f, h, _tie, pop_node) = (None, float("inf"), None, None) # update this line to implement step 1 
+        (f, h, _tie, pop_node) = heapq.heappop(open)
 
         # Update the best cost value
         if h < besth:
@@ -193,8 +194,11 @@ def astar_search(
         # ---- Step 2 ----
         # Use the node to be expanded to get its state and its cost g (i.e. the path length to the node). 
         # See searchspace.py
-        pop_state =  None # state in node, update this line to implement step 2
-        pop_g =  None # cost g of node, update this line to implement step 2
+        # pop_state =  None # state in node, update this line to implement step 2
+        # pop_g =  None # cost g of node, update this line to implement step 2
+
+        pop_state  = pop_node.state
+        pop_g = pop_node.g
 
         # ---- Step 3 ----
         # Only expand the node if its cost g is the lowest cost known for the node's state. 
@@ -203,19 +207,25 @@ def astar_search(
         # HINT: The costs found in previous loops are stored with their associated state  
         #       in the state_cost dictionary (see before loop)
         # If the cost g of the node is equal to the lowest cost known for the node's state (Step 5):
+        if pop_g == state_cost[pop_state]:
             # ---- Step 4 ----
             # Increase the expansions counter and optionally print it
+            expansions += 1
+            logging.info("Expanding node with one to %d" % expansions)
 
             # ---- Step 5 ----
             # If the goal of the task has been reach in the node's state, 
             # then extract the solution and return it!
             # HINT: You can extract the solution to the task, using the SearchNode method extract_solution() 
-           
+            if task.goal_reached(pop_state):
+                logging.info("Goal reached after %d expansions" % expansions)
+                return pop_node.extract_solution()
+
             # ---- Step 6 ----
             # Else create and add each neighbor node of the node to the heap if it is worth exploring
             # HINT: You can create neighbor nodes, using the SearchNode method make_child_node()
             # For every neighbor state of the node's state:
-                # i) Create a neighbor node 
+            # i) Create a neighbor node 
                 # ii) Calculate the h cost of the neighbor node using the callable parameter "heuristic" 
                 #     (see above how the h cost was calculated for the root node)
                 # iii) If h is equal to infinite continue to a new round (the next neighbor state) 
@@ -229,7 +239,21 @@ def astar_search(
                 #     Else, continue to a new round (the next neighbor state), since we can 
                 #     already reach the state in a cheaper way discovered in the past.
 
+            for action in task.get_successor_actions(pop_state):
+                child_node = pop_node.make_child_node(action)
+                child_state = child_node.state
+                child_g = child_node.g
+                child_h = heuristic(child_node)
 
+                if child_h == float("inf"):
+                    continue
+
+                if child_state not in state_cost or child_g < state_cost[child_state]:
+                    node_tiebreaker += 1
+                    logging.info("Increase node tiebreaker with one to %d" % node_tiebreaker)
+                    state_cost[child_state] = child_g
+                    heapq.heappush(open, make_open_entry(child_node, child_h, node_tiebreaker))
+                    logging.info("Add neighbor node to open with h: %f" % child_h)
                 # If one of the conditions in iv) holds add the neighbor node to the heap
                     # ---- Step 7 ----
                     # i) Increase node_tiebreaker by 1
