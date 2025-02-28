@@ -57,7 +57,6 @@ class Operator:
         @return True if the operator's preconditions is a subset of the state,
                 False otherwise
         """
-        # return None # remove after implementing the method
         return self.preconditions.issubset(state)
 
     # ---- Step 2 ----
@@ -80,7 +79,6 @@ class Operator:
         newState.difference_update(self.del_effects)
         newState.update(self.add_effects)
         return frozenset(newState)
-        # return None # remove after implementing the method
 
     def __eq__(self, other):
         return (
@@ -138,7 +136,6 @@ class Task:
         @return True if all the goals are reached, False otherwise
         """
         return self.goals.issubset(state)
-        # return None # remove after implementing the method
 
     # ---- Step 4 ----
     # Implement the method
@@ -162,7 +159,6 @@ class Task:
                 newState = op.apply(state)
                 nextStates.append((op, newState))
         return nextStates
-        # return [] # remove after implementing the method
 
     def __str__(self):
         s = "Task {0}\n  Vars:  {1}\n  Init:  {2}\n  Goals: {3}\n  Ops:   {4}"
